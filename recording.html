@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive AI Interview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('https://mlrit.ac.in/wp-content/uploads/2022/04/most-common-interview-questions.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+        }
+
+        h1 {
+            margin: 20px;
+            text-align: center;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .chat-container {
+            display: flex;
+            justify-content: space-between;
+            width: 85%;  /* Increased width */
+            max-width: 1200px;  /* Increased max width */
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 30px;  /* Increased padding */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .chat-column {
+            width: 45%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chat-messages {
+            width: 100%;
+            height: 450px;  /* Increased height */
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;  /* Increased padding */
+            overflow-y: auto;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 12px;
+            max-width: 90%;
+            word-wrap: break-word;
+            font-size: 16px;  /* Increased font size */
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .ai {
+            background: #0078d4;
+            color: #fff;
+            align-self: flex-start;
+        }
+
+        .user {
+            background: #28a745;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .start-btn {
+            background-color: #0078d4;
+            color: white;
+        }
+
+        .start-btn:hover {
+            background-color: #005bb5;
+        }
+
+        .record-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .record-btn:hover {
+            background-color: #218838;
+        }
+
+        /* Feedback Button */
+        .feedback-btn {
+            background-color: #f7a400;
+            color: white;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10;  /* Ensure it's on top */
+            display: none;  /* Initially hidden */
+        }
+
+        .feedback-btn:hover {
+            background-color: #d98800;
+        }
+    </style>
+</head>
+<body>
+    <h1>Interactive AI Interview</h1>
+    <div class="chat-container">
+        <div class="chat-column">
+            <h2>AI (Asking Questions)</h2>
+            <div class="chat-messages" id="ai-messages"></div>
+        </div>
+        <div class="chat-column">
+            <h2>User (Answering)</h2>
+            <div class="chat-messages" id="user-messages"></div>
+        </div>
+    </div>
+    <div style="text-align: center; margin: 20px;">
+        <button class="start-btn" id="start-btn">Start Interview</button>
+        <button class="record-btn" id="record-btn">Record Answer</button>
+    </div>
+
+    <!-- Feedback Button -->
+    <button class="feedback-btn" id="feedback-btn">Get Feedback</button>
+
+    <script>
+        const aiMessages = document.getElementById("ai-messages");
+        const userMessages = document.getElementById("user-messages");
+        const startButton = document.getElementById("start-btn");
+        const recordButton = document.getElementById("record-btn");
+        const feedbackButton = document.getElementById("feedback-btn");
+
+        // Predefined AI Questions
+        const questions = [
+            "Can you tell me about yourself?",
+            "Why do you want to work with us?",
+            "What are your strengths and weaknesses?",
+            "Where do you see yourself in 5 years?",
+            "Do you have any questions for us?"
+        ];
+
+        let userAnswers = [];
+        let questionIndex = 0;
+
+        // SpeechSynthesis for AI Speaking
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "en-US";
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Add message to AI or User chat
+        function addMessage(text, container, className) {
+            const messageElement = document.createElement("div");
+            messageElement.textContent = text;
+            messageElement.className = `message ${className}`;
+            container.appendChild(messageElement);
+            container.scrollTop = container.scrollHeight; // Auto-scroll to the latest message
+        }
+
+        // Start the Interview
+        startButton.addEventListener("click", () => {
+            if (questionIndex < questions.length) {
+                const question = questions[questionIndex];
+                addMessage(question, aiMessages, "ai");
+                speak(question);
+                questionIndex++;
+            } else {
+                addMessage("Thank you for completing the interview!", aiMessages, "ai");
+                speak("Thank you for completing the interview!");
+                startButton.disabled = true; // Disable start button after all questions are asked
+                feedbackButton.style.display = "block";  // Show feedback button after the interview
+            }
+        });
+
+        // Web Speech API for recording answers
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+
+        recordButton.addEventListener("click", () => {
+            recognition.start();
+            recordButton.disabled = true; // Disable recording button while recording
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                addMessage(transcript, userMessages, "user");
+                userAnswers.push(transcript); // Store the user's answers
+                recordButton.disabled = false; // Re-enable recording button
+            };
+        });
+
+        recognition.onerror = (event) => {
+            console.error("Speech recognition error:", event.error);
+            recordButton.disabled = false;
+        };
+
+        // Simple Feedback Based on User's Answers
+        feedbackButton.addEventListener("click", () => {
+            let feedback = "Here is your feedback:\n\n";
+            userAnswers.forEach((answer, index) => {
+                feedback += `Answer to Question ${index + 1}: ${answer}\n`;
+
+                // Basic keyword-based feedback
+                if (answer.toLowerCase().includes("strength")) {
+                    feedback += "Your response shows confidence, good job!\n\n";
+                } else if (answer.toLowerCase().includes("weakness")) {
+                    feedback += "Acknowledging weaknesses is important. Keep working on self-improvement.\n\n";
+                } else if (answer.toLowerCase().includes("teamwork")) {
+                    feedback += "Teamwork is a valuable skill, keep emphasizing your collaborative nature.\n\n";
+                } else {
+                    feedback += "Try to provide more specific examples in your answers.\n\n";
+                }
+            });
+
+            alert(feedback);
+        });
+    </script>
+</body>
+</html>
